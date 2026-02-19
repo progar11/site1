@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Турнирная сетка</title>
+
+<style>
+:root {
+    --bg: #0f172a;
+    --panel: rgba(15, 23, 42, 0.9);
+    --manual: #1f2933;
+    --accent: #22c55e;
+    --text: #e5e7eb;
+}
+
+body {
+    margin: 0;
+    font-family: 'Segoe UI', sans-serif;
+    background: radial-gradient(circle at top, #1e293b, #020617);
+    color: var(--text);
+    padding: 20px;
+}
+
+.setup-area {
+    background: var(--panel);
+    backdrop-filter: blur(12px);
+    padding: 25px;
+    border-radius: 18px;
+    max-width: 460px;
+    margin: auto;
+    box-shadow: 0 0 35px rgba(0,0,0,0.6);
+    animation: fadeIn 0.5s ease;
+}
+
+.setup-title {
+    font-size: 20px;
+    margin-bottom: 20px;
+}
+
+.pair-card {
+    background: rgba(0,0,0,0.35);
+    padding: 12px;
+    border-radius: 12px;
+    margin-bottom: 15px;
+    border: 1px solid rgba(255,255,255,0.05);
+    animation: slideUp 0.3s ease;
+}
+
+.pair-card strong {
+    font-size: 14px;
+    opacity: 0.7;
+}
+
+input {
+    width: 100%;
+    padding: 10px;
+    margin-top: 6px;
+    border-radius: 8px;
+    border: none;
+    background: #020617;
+    color: white;
+    outline: none;
+    box-sizing: border-box;
+}
+
+button {
+    width: 100%;
+    padding: 12px;
+    margin-top: 10px;
+    border-radius: 10px;
+    border: none;
+    cursor: pointer;
+    font-weight: bold;
+    transition: 0.25s;
+}
+
+.btn-add {
+    background: #1d4ed8;
+    color: white;
+}
+
+.btn-start {
+    background: var(--accent);
+    color: white;
+}
+
+button:hover {
+    transform: translateY(-1px);
+    filter: brightness(1.1);
+}
+
+.bracket-container {
+    display: flex;
+    gap: 30px;
+    overflow-x: auto;
+    padding: 20px 10px;
+    margin-top: 20px;
+}
+
+.round {
+    min-width: 240px;
+    padding: 15px;
+    border-radius: 16px;
+    animation: slideIn 0.4s ease;
+}
+
+.round-manual {
+    background: var(--manual);
+}
+
+.matchup {
+    background: rgba(0,0,0,0.35);
+    border-radius: 12px;
+    margin: 18px 0;
+    overflow: hidden;
+    border: 1px solid rgba(255,255,255,0.04);
+}
+
+.team {
+    padding: 12px;
+    cursor: pointer;
+    transition: 0.25s;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    position: relative;
+}
+
+.team:last-child { border-bottom: none; }
+
+.team:hover {
+    background: rgba(34,197,94,0.15);
+}
+
+.team.winner-selected {
+    background: var(--accent);
+    color: white;
+    font-weight: bold;
+    box-shadow: 0 0 15px rgba(34,197,94,0.6);
+}
+
+.champion {
+    font-size: 18px;
+    font-weight: bold;
+    color: gold;
+    margin-bottom: 6px;
+}
+
+.winner-label {
+    float: right;
+}
+.credit {
+    position: fixed;
+    bottom: 10px;           /* отступ от низа */
+    left: 50%;              /* центрируем по горизонтали */
+    transform: translateX(-50%); /* реально центрируем */
+    font-size: 12px;
+    opacity: 0.35;          /* полупрозрачный */
+    pointer-events: none;    /* чтобы не мешал кликам */
+    user-select: none;       /* нельзя выделить текст */
+}
+/* Правильная адаптация */
+.bracket-container {
+    display: flex;
+    flex-wrap: nowrap; /* Запрещаем перенос раундов на новую строку */
+    gap: 30px;
+    padding: 20px;
+    align-items: flex-start;
+    overflow-x: auto; /* Включаем горизонтальный скролл, если сетка шире экрана */
+    min-height: 80vh;
+}
+
+.round {
+    flex: 0 0 260px; /* Фиксируем ширину раунда, чтобы они не сжимались */
+    background: var(--manual);
+    padding: 15px;
+    border-radius: 16px;
+}
+
+/* Мелкие правки для мобилок только на очень маленьких экранах */
+@media (max-width: 480px) {
+    body { padding: 10px; }
+    .setup-area { padding: 15px; }
+}
+
+
+@media (max-width: 480px) {
+    .team, .pair-card, .round {
+        font-size: 14px;
+        padding: 8px;
+    }
+    .setup-title { font-size: 18px; }
+    button { padding: 10px; font-size: 14px; }
+}
+
+/* Анимации */
+@keyframes fadeIn {
+    from { opacity: 0; transform: scale(0.95); }
+    to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes slideUp {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideIn {
+    from { opacity: 0; transform: translateX(20px); }
+    to { opacity: 1; transform: translateX(0); }
+}
+
+/* Мобильная адаптация */
+@media (max-width: 600px) {
+    .round { min-width: 200px; }
+    .setup-area { max-width: 100%; }
+}
+</style>
+</head>
+
+<body>
+
+<div class="setup-area" id="setup">
+    <div class="setup-title">Создание пар (Раунд 1)</div>
+    <div id="inputs-container"></div>
+
+    <button class="btn-add" onclick="addPairField()">+ Добавить пару</button>
+    <button class="btn-start" onclick="startTournament()">Начать турнир</button>
+</div>
+
+<div class="bracket-container" id="bracket"></div>
+
+<div class="credit">Made by ne_arek</div>
+
+
+<script>
+let pairCount = 0;
+
+function addPairField() {
+    pairCount++;
+    const container = document.getElementById('inputs-container');
+    const div = document.createElement('div');
+    div.className = "pair-card";
+
+    div.innerHTML = `
+        <strong>Пара №${pairCount}</strong>
+        <input type="text" placeholder="Команда А" class="t1">
+        <input type="text" placeholder="Команда Б" class="t2">
+    `;
+
+    container.appendChild(div);
+}
+
+function startTournament() {
+    const t1Inputs = document.querySelectorAll('.t1');
+    const t2Inputs = document.querySelectorAll('.t2');
+    const matches = [];
+
+    t1Inputs.forEach((input, i) => {
+        const name1 = input.value || `Команда ${i*2 + 1}`;
+        const name2 = t2Inputs[i].value || `Команда ${i*2 + 2}`;
+        matches.push([name1, name2]);
+    });
+
+    if (matches.length < 2) {
+        alert("Добавьте хотя бы 2 пары!");
+        return;
+    }
+
+    document.getElementById('setup').style.display = 'none';
+    renderRound(1, matches, true);
+}
+
+function renderRound(roundNum, matches, isManual) {
+    const bracket = document.getElementById('bracket');
+    const roundDiv = document.createElement('div');
+
+    roundDiv.className = `round ${isManual ? 'round-manual' : ''}`;
+    roundDiv.id = `round-${roundNum}`;
+    roundDiv.innerHTML = `<h3>Раунд ${roundNum}</h3>`;
+
+    if (!isManual) {
+        const hue = 260 + (roundNum * 25);
+        roundDiv.style.background = `hsl(${hue}, 60%, 18%)`;
+        roundDiv.style.boxShadow = `0 0 18px hsl(${hue}, 80%, 40%)`;
+    }
+
+    matches.forEach(pair => {
+        const matchDiv = document.createElement('div');
+        matchDiv.className = 'matchup';
+
+        matchDiv.innerHTML = `
+            <div class="team" onclick="pickWinner(this, ${roundNum})">${pair[0]}</div>
+            <div class="team" onclick="pickWinner(this, ${roundNum})">${pair[1]}</div>
+        `;
+
+        roundDiv.appendChild(matchDiv);
+    });
+
+    bracket.appendChild(roundDiv);
+}
+
+function pickWinner(element, roundNum) {
+    const matchDiv = element.parentElement;
+    if (matchDiv.querySelector('.winner-selected')) return;
+
+    element.classList.add('winner-selected');
+    element.innerHTML += '<span class="winner-label">✔</span>';
+
+    const winnerName = element.innerText.replace('✔', '').trim();
+
+    const roundDiv = document.getElementById(`round-${roundNum}`);
+    const totalTeams = roundDiv.querySelectorAll('.team').length;
+
+    if (totalTeams === 2) {
+        element.insertAdjacentHTML("afterbegin", `<div class="champion">👑 Champion 🏆</div>`);
+        return;
+    }
+
+    advance(winnerName, roundNum + 1);
+}
+
+function advance(name, nextRoundNum) {
+    let nextRound = document.getElementById(`round-${nextRoundNum}`);
+
+    if (!nextRound) {
+        renderRound(nextRoundNum, [], false);
+        nextRound = document.getElementById(`round-${nextRoundNum}`);
+    }
+
+    let lastMatch = nextRound.querySelector('.matchup:last-child');
+
+    if (lastMatch && lastMatch.querySelectorAll('.team').length < 2) {
+        const teamDiv = document.createElement('div');
+        teamDiv.className = 'team';
+        teamDiv.innerText = name;
+        teamDiv.onclick = function() { pickWinner(this, nextRoundNum); };
+        lastMatch.appendChild(teamDiv);
+    } else {
+        const newMatch = document.createElement('div');
+        newMatch.className = 'matchup';
+
+        const teamDiv = document.createElement('div');
+        teamDiv.className = 'team';
+        teamDiv.innerText = name;
+        teamDiv.onclick = function() { pickWinner(this, nextRoundNum); };
+
+        newMatch.appendChild(teamDiv);
+        nextRound.appendChild(newMatch);
+    }
+}
+
+addPairField();
+addPairField();
+</script>
+
+</body>
+</html>
